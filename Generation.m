@@ -9,13 +9,14 @@ function image = Generation(R,T,A,database)
 
 %   Output: An rgb image generated.
 image = zeros(h,w,3);
-Intrisinc = [fx 0 ox 0;0 fy oy 0;0 0 1 0];
+
 [~,n] = size(A);
 all = cell(n - 1,2 * 441);
 
-for i = 2:n - 1
-    R_main = database(A(1),1);
-    T_main = database(A(1),2);
+for i = 2:n
+    ref  = i - 1;
+    R_main = database(A(ref),1);
+    T_main = database(A(ref),2);
     t_main = [T_main(3,2);T_main(1,3);T_main(2,1)];
     H_main = [R_main t_main;0 0 0 1];%Transformation from reference frame to main frame
     t = [T(3,2);T(1,3);T(2,1)];
@@ -32,6 +33,8 @@ for i = 2:n - 1
     R_m_current = H_m_current(3:3,3:3);
     t_m_current = H_m_current(1:3,4);
     T_m_current = [0 -t_m_current(3) t_m_current(2);t_m_current(3) 0 -t_m_current(1);-t_m_current(2) t_m_current(1) 0];
+    Int = database(A(ref),3);
+    Intrisinc = [Int(1) 0 Int(3) 0;0 Int(2) Int(4) 0;0 0 1 0];
     k = Intrisinc * t_current;
     epi_point = ceil([k(1) / k(3);k(2) / k(3)]);
     
@@ -72,21 +75,35 @@ for i = 1:n -1
         Point4 = Intersection(line4,fill_line);
         if (NotInRange(Point1(1),Point1(2)))
             P1 = Point3;
+            P1_t = tar_up;
         else
             P1 = fill_up;
+            P1_t = Point1;
         end
         if (NotInRange(Point2(1),Point2(2)))
             P2 = Point4;
+            P2_t = tar_down;
         else
-            P2 = fill_down;%Pin down the start and end point on corresponding image
+            P2 = fill_down;
+            P2_t = Point2;%Pin down the start and end point on corresponding image and target image
         end
-        range = fill_line;
+        range_f = fill_line;
         fill = [];
         for r = 1:fill_num
-            if (range(r,1) > P1(1) && range(r,1) < P2(1))
-                fill = [fill;range(r,:)];
+            if (range_f(r,1) > P1(1) && range_f(r,1) < P2(1))
+                fill = [fill;range_f(r,:)];%fill_line that will fill into the target image
             end
         end
+        range_t = tar_line;
+        tar = [];
+        for r = 1:tar_num
+            if (range_t(r,1) > P1_t(1) && range_t(r,1) < P2_t(1))
+                tar = [tar;range_f(r,:)];%target line that will be filled
+            end
+        end
+        [fill_n,~] = size(fill);
+        [tar_n,~] = size(tar);
+        ratio = tar_n / fill_n;
     end
 end
     
