@@ -11,9 +11,12 @@ function [R,T] = Essential(img1,img2,Int1,Int2)
 %           The translation matrix in form of [0 -tz ty
 %                                              tz 0 -tx
 %                                              -ty tx 0]
+
+
 % Load stereo points.
 load stereoPointPairs
 load upToScaleReconstructionCameraParameters.mat
+
 % Estimate the fundamental matrix.
 % fRANSAC = estimateFundamentalMatrix(matchedPoints1,matchedPoints2,'Method','RANSAC','NumTrials',2000,'DistanceThreshold',1e-4)
 
