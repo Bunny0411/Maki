@@ -86,9 +86,10 @@ title('Inlier Matches')
 
 %%
 % Getting Rotation matrix R and translation matrix t using SVD:
-[Rotation, singular, Translation] = svd(E);
+[U, sing, V] = svd(E)
 
-Rotation
-Translation
+Rotation = U
+Translation = [U(1,1); U(2,2); U(3,3)]
+
 
 end
