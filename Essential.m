@@ -1,10 +1,11 @@
-function [E,R,T] = Essential(img1,img2)
+function [E,R,T] = Essential(img1,img2, CameraParams)
 %ESSENTIAL Summary of this function goes here
 %   This function calculates the relative position and orientation
 %   (essential matrix) of camera2 wrt camera1
-%   Input: img1, img2, images taken by camera1 and camera2
-%   respectively;Int1, Int2, intrisinc parameters of the form [fx fy ox oy]
-%   of the two cameras respectively.
+%   Input: img1, img2, images taken by from two view points
+%           CameraParams are intrisinc parameters of the camera, such as
+%           focal point and priciple point
+
 %   Output: The rotation matrix in form of [r11 r12 r13
 %                                           r21 r22 r23
 %                                           r31 r32 r33]
@@ -16,8 +17,8 @@ load stereoPointPairs
 load upToScaleReconstructionCameraParameters.mat
 % Estimate the fundamental matrix.
 
-imageDir = '/Users/mshong0320/Desktop/CV_Project_Data/From_spot3';
-images = imageDatastore(imageDir);
+% imageDir = '/Users/mshong0320/Desktop/CV_Project_Data/From_spot3';
+% images = imageDatastore(imageDir);
 
 img1 = undistortImage(readimage(images,1),cameraParams);
 img2 = undistortImage(readimage(images,2),cameraParams);
