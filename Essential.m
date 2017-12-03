@@ -1,4 +1,4 @@
-function [R,T] = Essential(img1,img2,Int1,Int2)
+function [E, R,T] = Essential(img1,img2,Int1,Int2)
 %ESSENTIAL Summary of this function goes here
 %   This function calculates the relative position and orientation
 %   (essential matrix) of camera2 wrt camera1
@@ -11,6 +11,9 @@ function [R,T] = Essential(img1,img2,Int1,Int2)
 %           The translation matrix in form of [0 -tz ty
 %                                              tz 0 -tx
 %                                              -ty tx 0]
+%           The Essential matrix in form of [e11 e12 e13
+%                                            e21 e22 e23
+%                                            e31 e32 e33]
 
 
 % Load stereo points.
@@ -72,7 +75,8 @@ title('Putative Matches')
 %%
 
 % Estimate the essential matrix.
-[E,inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2,'NumTrials',4000)
+[E,inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2,'NumTrials',4000);
+E
 
 % Display the inlier matches.
 inlierPoints1 = matchedPoints1(inliers);
