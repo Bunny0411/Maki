@@ -16,19 +16,16 @@ function selection = Select(R,T,database)
 %   nearest to the farthest. By nearest, it doesn't mean nearest to the
 %   target frame but nearest to the object (for example, the building in
 %   the image)
-clear
-clc
-
 % Generating graph of the postions of the pictures taken
 names = {'pos1' 'pos2' 'pos3' 'pos4' 'pos5' 'pos6' 'pos7' 'pos8' 'given_pos'};
 A= ones(9) - diag([1 1 1 1 1 1 1 1 1]);
 G = graph(A,names,'upper','OmitSelfLoops');
 h = plot(G);
 
-h.XData = [10 10 5 0 0 0 5 10 T(1)];
-h.YData = [5 0 0 0 5 10 10 10 T(2)];
+h.XData = [10 10 5 0 0 0 5 10 2];
+h.YData = [5 0 0 0 5 10 10 10 5];
 highlight(h,'pos1','NodeColor','r','EdgeColor','r');
-N = size(names) 
+N = size(names); 
 
 % Set the distance threshold
 threshold = 8;
@@ -58,18 +55,27 @@ sub_c.YData = ydata;
 
 % Reading data from folders specified as above
 n = 1;
-currentfilename = [];
+currentfilename = 0;
+s=0;
+temp = 0;
 while (n < size(nodes,2))
     disp(n)
-    cd /home/priyanka/Pictures/2017/12/
-    name ="/pos"+string(nodes(n))+"/";
-    cd('name')
-    imagefiles = dir('*.JPG');      
-    nfiles = length(imagefiles);    % Number of files found
-    for ii=1:nfiles
-        selection(:,n) = imagefiles(ii).name;
-    end
+    temp=temp + s;
+    img = get_images(n);
+    s = size(img,2);
+    selection(1,temp+1:temp+s) = img;
     n=n+1;
+end
+end
+function images = get_list()
+    imagefiles = dir('*.JPG');    
+    nfiles = length(imagefiles);   % Number of files found
+    for ii=1:nfiles
+        currentfilename = imagefiles(ii).name;
+        currentimage = imread(currentfilename);
+        images{ii} = currentimage;
+    end
+    return
 end
 
 function euclideanDistance = CalcDistance(x1, y1, x2, y2) 
@@ -77,7 +83,41 @@ euclideanDistance = sqrt((x2-x1)^2+(y2-y1)^2);
 return
 end
 
+function images = get_images(pos)
+    
+    if (pos == 1)
+        cd '/home/priyanka/Pictures/2017/12/pos1'
+        images = get_list();
+    elseif (pos == 2)
+        cd '/home/priyanka/Pictures/2017/12/pos2'
+        images = get_list();
+    elseif (pos == 3)
+        cd '/home/priyanka/Pictures/2017/12/pos3'
+        images = get_list();
+    elseif (pos == 4)
+        cd '/home/priyanka/Pictures/2017/12/pos4'
+        images = get_list();
+    elseif (pos == 5)
+        cd '/home/priyanka/Pictures/2017/12/pos5'
+        images = get_list();
+    elseif (pos == 6)
+        cd '/home/priyanka/Pictures/2017/12/pos6'
+        images = get_list();
+    elseif (pos == 7)
+        cd '/home/priyanka/Pictures/2017/12/pos7'
+        images = get_list();
+    elseif (pos == 8)
+        cd '/home/priyanka/Pictures/2017/12/pos8'
+        images = get_list();
+    else 
+        % close up pictures
+        cd '/home/priyanka/Pictures/2017/12/pos9'
+        images = get_list();
+    end
+    return
 end
+
+
 
 
 
