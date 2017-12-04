@@ -15,17 +15,6 @@ load stereoPointPairs
 load upToScaleReconstructionCameraParameters.mat
 % Estimate the fundamental matrix.
 
-% imageDir = '/Users/mshong0320/Desktop/CV_Project_Data/From_spot3';
-% images = imageDatastore(imageDir);
-
-% img1 = undistortImage(readimage(images,1),cameraParams);
-% img2 = undistortImage(readimage(images,2),cameraParams);
-% 
-% img1_gray= rgb2gray(I1);
-% img2_gray = rgb2gray(I2);
-
-%%
-
 %Detect feature points each image.
 imagePoints1 = detectSURFFeatures(img1); %function derives the descriptors from pixels surrounding an interest point.
 imagePoints2 = detectSURFFeatures(img2);
