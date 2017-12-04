@@ -83,8 +83,9 @@ title('Inlier Matches with outer points removed')
 % Getting Rotation matrix R and translation matrix t using SVD:
 [U, sing, V] = svd(E);
 
-Rotation = U
-Translation = [U(1,1); U(2,2); U(3,3)]
-
+Rotation = U*[0 -1 0; 1 0 0; 0 0 1]* V';
+Translation = [U(1,1); U(2,2); U(3,3)];
+Rotation
+Translation
 
 end
