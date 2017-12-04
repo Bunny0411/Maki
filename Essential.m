@@ -55,8 +55,12 @@ title('Putative Matches')
 %%
 
 % Estimate the essential matrix.
-[E,inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2,'NumTrials',4000);
-E
+%[E,inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2,'NumTrials',4000);
+%E
+[fRANSAC_E, inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2,'Method','RANSAC',...
+    'NumTrials',4000,'DistanceThreshold',1e-4);
+fRANSAC_E
+
 
 % Display the inlier matches.
 inlierPoints1 = matchedPoints1(inliers);
