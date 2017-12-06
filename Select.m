@@ -22,18 +22,18 @@ A= ones(9) - diag([1 1 1 1 1 1 1 1 1]);
 G = graph(A,names,'upper','OmitSelfLoops');
 h = plot(G);
 
-h.XData = [10 10 5 0 0 0 5 10 2];
-h.YData = [5 0 0 0 5 10 10 10 5];
-highlight(h,'pos1','NodeColor','r','EdgeColor','r');
+h.XData = [0.9175 0.5527 -0.0080 0.0790 -0.0952 -0.4773 -0.1097 -0.2841 0.05];
+h.YData = [0.1332 0.1746 0.1852 0.2949 0.1677 0.2771 0.0105 0.0697 0.2];
+highlight(h,'given_pos','NodeColor','r','EdgeColor','r');
 N = size(names); 
 
 % Set the distance threshold
-threshold = 8;
+threshold = 0.55;
 
 % Calculating distances and selecting new nodes
 no = 0;
 for i = 1:8
-    dist = CalcDistance(h.XData(i),h.YData(i), h.XData(9),h.YData(9));
+    dist = CalcDistance(h.XData(i),h.YData(i), h.XData(9),h.YData(9))
     if dist < threshold
         no = no + 1;
         nodes(no) = i;
@@ -42,6 +42,7 @@ for i = 1:8
     end
         
 end
+
 nodes(no+1) = 9;
 xdata(no+1) = h.XData(9);
 ydata(no+1) = h.YData(9); 
@@ -79,43 +80,46 @@ function images = get_list()
 end
 
 function euclideanDistance = CalcDistance(x1, y1, x2, y2) 
-euclideanDistance = sqrt((x2-x1)^2+(y2-y1)^2);
+euclideanDistance = sqrt((abs(x2)-abs(x1))^2+(abs(y2)-abs(y1))^2);
 return
 end
 
 function images = get_images(pos)
     
     if (pos == 1)
-        cd '/home/priyanka/Pictures/2017/12/pos1'
+        cd '/home/priyanka/Desktop/Project/Brody/pos1'
         images = get_list();
     elseif (pos == 2)
-        cd '/home/priyanka/Pictures/2017/12/pos2'
+        cd '/home/priyanka/Desktop/Project/Brody/pos2'
         images = get_list();
     elseif (pos == 3)
-        cd '/home/priyanka/Pictures/2017/12/pos3'
+        cd '/home/priyanka/Desktop/Project/Brody/pos3'
         images = get_list();
     elseif (pos == 4)
-        cd '/home/priyanka/Pictures/2017/12/pos4'
+        cd '/home/priyanka/Desktop/Project/Brody/pos4'
         images = get_list();
     elseif (pos == 5)
-        cd '/home/priyanka/Pictures/2017/12/pos5'
+        cd '/home/priyanka/Desktop/Project/Brody/pos5'
         images = get_list();
     elseif (pos == 6)
-        cd '/home/priyanka/Pictures/2017/12/pos6'
+        cd '/home/priyanka/Desktop/Project/Brody/pos6'
         images = get_list();
     elseif (pos == 7)
-        cd '/home/priyanka/Pictures/2017/12/pos7'
+        cd '/home/priyanka/Desktop/Project/Brody/pos7'
         images = get_list();
     elseif (pos == 8)
-        cd '/home/priyanka/Pictures/2017/12/pos8'
+        cd '/home/priyanka/Desktop/Project/Brody/pos8'
         images = get_list();
     else 
         % close up pictures
-        cd '/home/priyanka/Pictures/2017/12/pos9'
+        cd '/home/priyanka/Desktop/Project/Brody'
         images = get_list();
     end
     return
 end
+
+
+
 
 
 
