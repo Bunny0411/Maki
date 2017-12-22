@@ -1,112 +1,192 @@
-function image = Generation(R,T,A,database)
-%GENERATION Summary of this function goes here
-%   This is the core function which will generate a new image given a
-%   position.
+[ w, h ] = size( I1 );%
+img = Ia - Ia;
+% sample_points = [ 2500 2500; 3000 3000 ];
+[ n, ~ ] = size( sample_points );
 
-%   Input: R and T are the relative position to reference image. A is the
-%   selected image matrix given by Select.m and database is given by
-%   Database.m
+V1 = zeros( w, h );
+V2 = zeros( w, h );
 
-%   Output: An rgb image generated.
-image = zeros(h,w,3);
-
-[~,n] = size(A);
-all = cell(n - 1,2 * 441);
-
-for i = 2:n
-    ref  = i - 1;
-    R_main = database(A(ref),1);
-    T_main = database(A(ref),2);
-    t_main = [T_main(3,2);T_main(1,3);T_main(2,1)];
-    H_main = [R_main t_main;0 0 0 1];%Transformation from reference frame to main frame
-    t = [T(3,2);T(1,3);T(2,1)];
-    H = [R t;0 0 0 1];%Transformation from reference frame to target frame
-    H_m_target = H_main \ H;%Transformation from main frame to target frame
-    R_m_target = H_m_target(3:3,3:3);
-    t_m_target = H_m_target(1:3,4);
-    T_m_target = [0 -t_m_target(3) t_m_target(2);t_m_target(3) 0 -t_m_target(1);-t_m_target(2) t_m_target(1) 0];
-    R_current = database(A(i),1);
-    T_current = database(A(i),2);
-    t_current = [T_current(3,2);T_current(1,3);T_current(2,1);1];
-    H_current = [R_current t_current;0 0 0 1];%Transformation from reference frame to current frame
-    H_m_current = H_main \ H_current;%Transformation from main frame to current frame
-    R_m_current = H_m_current(3:3,3:3);
-    t_m_current = H_m_current(1:3,4);
-    T_m_current = [0 -t_m_current(3) t_m_current(2);t_m_current(3) 0 -t_m_current(1);-t_m_current(2) t_m_current(1) 0];
-    Int = database(A(ref),3);
-    Intrisinc = [Int(1) 0 Int(3) 0;0 Int(2) Int(4) 0;0 0 1 0];
-    k = Intrisinc * t_current;
-    epi_point = ceil([k(1) / k(3);k(2) / k(3)]);
+for s = 1 : n
     
-    count = 0;
-    for p = epi_point(1) - 10:epi_point(1) + 10
-        for q =epi_point(2) - 10:epi_point(2) + 10
-            count = count + 1;
-            all(i - 1,count * 2 - 1) = Epipolar(R_m_target,T_m_target,p,q);%epipolar line coordinate of the target image
-            all(i - 1,count * 2) = Epipolar(R_m_current,T_m_current,p,q);%epipolar line coordinate fo the current image
-        end
-    end
-end
+     if Valid( [ sample_points( s, 1 ), sample_points( s, 2 ) ], V1 )
+         
+         sample1 = [ sample_points( s, 2 ), sample_points( s, 1 ) ];
+         sample2 = Transform( H, sample1 );
+         epiLines1 = epipolarLine( F', sample2 );
+         epiLines2 = epipolarLine( F, sample1 );
+         
+         L1 = Epipolar( epiLines1(1), epiLines1(2), epiLines1(3) );
+         L2 = Epipolar( epiLines2(1), epiLines2(2), epiLines2(3) );
+         
+         [ n1, ~ ] = size( L1 );
+         [ n2, ~ ] = size( L2 );
+         
+         if n2 > 150 && n1 > 150
+             
+             for q = 10 : n1 - 10
+                 V1( L1 ( q, 1 ), L1 (q, 2) ) = 1;
+             end
 
-for i = 1:n -1
-    for j = 1:441
-        tar_line = all(i,2 * j - 1);%Epipolar line on the target image
-        [n,~] = size(tar_line);
-        tar_num = n;
-        fill_line =all(i,2 * j);%Epipolar line on the corresponding image
-        [n,~] = size(fill_line);
-        fill_num = n;
-        tar_up = tar_line(1,:);
-        tar_down = tar_line(tar_num,:);%Two end points of the epipolar line on target image
-        fill_up = fill_line(1,:);
-        fill_down = fill_line(fill_num,:);%Two end points of the epipolar line on corresponding image
-        R1 = R;
-        T1 = T;%Target position wrt reference image
-        R2 = database(A(i + 1),1);
-        T2 = database(A(i + 1),2);%Corresponding position wrt reference frame
-        [R_rel,T_rel] = Relative(R1,T1,R2,T2);
-        line1 = Epipolar(R_rel,T_rel,fill_up(1),fill_up(2));
-        Point1 = Intersection(line1,tar_line);
-        line2 = Epipolar(R_rel,T_rel,fill_down(1),fill_down(2));
-        Point2 = Intersection(line2,tar_line);
-        line3 = Epipolar(inv(R_rel),R_rel \ T_rel,tar_up(1),tar_up(2));
-        Point3 = Intersection(line3,fill_line);
-        line4 = Epipolar(inv(R_rel),R_rel \ T_rel,tar_down(1),tar_down(2));
-        Point4 = Intersection(line4,fill_line);
-        if (NotInRange(Point1(1),Point1(2)))
-            P1 = Point3;
-            P1_t = tar_up;
-        else
-            P1 = fill_up;
-            P1_t = Point1;
-        end
-        if (NotInRange(Point2(1),Point2(2)))
-            P2 = Point4;
-            P2_t = tar_down;
-        else
-            P2 = fill_down;
-            P2_t = Point2;%Pin down the start and end point on corresponding image and target image
-        end
-        range_f = fill_line;
-        fill = [];
-        for r = 1:fill_num
-            if (range_f(r,1) > P1(1) && range_f(r,1) < P2(1))
-                fill = [fill;range_f(r,:)];%fill_line that will fill into the target image
-            end
-        end
-        range_t = tar_line;
-        tar = [];
-        for r = 1:tar_num
-            if (range_t(r,1) > P1_t(1) && range_t(r,1) < P2_t(1))
-                tar = [tar;range_f(r,:)];%target line that will be filled
-            end
-        end
-        [fill_n,~] = size(fill);
-        [tar_n,~] = size(tar);
-        ratio = tar_n / fill_n;
-    end
-end
+             disp ( [ ' Sample Point ', num2str( s ), ' In Process! ' ] );
+             
+             start_ = [ 0, 0 ];
+             end_ = [ 0, 0 ]; %Target
+             start__ = [ 0, 0 ];
+             end__ = [ 0, 0 ]; %Fill
+             
+             for p = 10 : 50 : n1 - 10
+                 
+                 pts1 = [ L1( p, 2 ), L1( p, 1 ) ];
+                 pts2 = Transform( H, pts1 );
+                 
+                 Epi1 = epipolarLine( F1, pts1 );
+                 Epi2 = epipolarLine( F2', pts2 );
+                 
+                 PTS = Intersection( Epi1, Epi2 );
+                 
+                 if NotInRange( PTS( 1 ), PTS( 2 ), w, h ) == false
+                     
+                     if NotInRange( start_( 1 ), start_( 2 ), w, h ) == false
+                         
+                         end_ = PTS';
+                         end__ = [ L1( p, 1 ), L1( p, 2 ) ];
+                         
+                         fill = L1( p - 50 : p, : );
+                         
+                         content = [ ];
+                         
+                         for i = 0 : round( norm( end_ - start_ ) )
+                             
+                             content = [ content; round( start_ + i * ( end_ - start_ ) / norm( end_ - start_ ) ) ];
+                         
+                         end
+                         
+                         if i > 10
+                             
+                             ratio = 50 / i;
+                             
+                             if ratio > 0.7 && ratio < 1.5
+                                 for r = 1 : i - 1
+                                     
+                                     x1 = content( r, 1 );
+                                     y1 = content( r, 2 );
+                                     
+                                     x2 = fill( 1 + floor(r * ratio ), 1 );
+                                     y2 = fill( 1 + floor(r * ratio ), 2 );
+                                     
+                                     if NotInRange( x1, y1, w, h ) == false && NotInRange( x2, y2, w, h ) == false && img( x1, y1, 1 ) < 1
+                                         
+                                         img( x1, y1, : ) = Ia( x2, y2, : );
+                                         
+                                         for q = -10 : 10
+                                             
+                                             if x1 + q > 0 && x1 + q < w && x2 + q > 0 && x2 + q < w
+                                                 
+                                                 img( x1 + q, y1, : ) = Ia( x2 + q, y2, : );
+                                                 
+                                             end
+                                             
+                                         end
+                                         
+                                     end
+                                     
+                                 end
+                             end
+                             
+                         end
+                         
+                     end
+                     
+                     start_ = PTS';
+                     start__ = [ L1( p, 1 ), L1( p, 2 ) ];
+                     
+                 end
+                 
+                 
+             end
+
+             
+             for p = 51 : 50 : n2 - 10
+                 
+                 pts1 = [ L2( p, 2 ), L2( p, 1 ) ];
+                 pts2 = Transform( inv( H ), pts1 );
+                 
+                 Epi1 = epipolarLine( F2', pts1 );
+                 Epi2 = epipolarLine( F1, pts2 );
+                 
+                 PTS = Intersection( Epi1, Epi2 );
+                 
+                 if NotInRange( PTS( 1 ), PTS( 2 ), w, h ) == false
+                     
+                     if NotInRange( start_( 1 ), start_( 2 ), w, h ) == false
+                         
+                         end_ = PTS';
+                         end__ = [ L2( p, 1 ), L2( p, 2 ) ];
+                         
+                         fill = L2( p - 49 : p, : );
+                         
+                         content = [ ];
+                         
+                         for i = 0 : round( norm( end_ - start_ ) )
+                             
+                             content = [ content; round( start_ + i * ( end_ - start_ ) / norm( end_ - start_ ) ) ];
+                         
+                         end
+                         
+                         if i > 10
+                             
+                             ratio = 50 / i;
+                             
+                             if ratio > 0.7 && ratio < 1.5
+                                 
+                                 for r = 5 : i - 5
+                                     
+                                     x1 = content( r, 1 );
+                                     y1 = content( r, 2 );
+                                     
+                                     x2 = fill( 1 + floor(r * ratio ), 1 );
+                                     y2 = fill( 1 + floor(r * ratio ), 2 );
+                                     
+                                     if NotInRange( x1, y1, w, h ) == false && NotInRange( x2, y2, w, h ) == false && img( x1, y1, 1 ) < 1
+                                         
+                                         img( x1, y1, : ) = Ia( x2, y2, : );
+                                         
+                                         for q = -10 : 10
+                                             
+                                             if x1 + q > 0 && x1 + q < w && x2 + q > 0 && x2 + q < w
+                                                 
+                                                 img( x1 + q, y1, : ) = Ib( x2 + q, y2, : );
+                                                 
+                                             end
+                                             
+                                         end
+                                         
+                                     end
+                                     
+                                 end
+                                 
+                             end
+                             
+                         end
+                         
+                     end
+                     
+                     start_ = PTS';
+                     start__ = [ L2( p, 1 ), L2( p, 2 ) ];
+                     
+                 end
+                 
+                 
+             end             
+             
+         else
+             
+             disp ( [ ' Sample Point ', num2str( s ), ' Not In Border Or Too Short! ' ] );
+             
+         end
+         
+         
+     end
+    
     
 end
-
-
